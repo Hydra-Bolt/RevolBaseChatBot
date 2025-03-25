@@ -276,7 +276,7 @@ def get_response(prompt, user_id):
         user_id (str): The user's ID for document access
         
     Returns:
-        str: AI-generated response or error message
+        tuple: (AI-generated response or error message, turnaround time)
     """
     start_time = time.time()
     
@@ -286,7 +286,7 @@ def get_response(prompt, user_id):
     
     if "error" in data:
         logger.error(f"Error in inference API: {data['error']}")
-        return data["error"]
+        response = data["error"]
     elif "results" in data:
         # Display status: Formatting document chunks
         with st.spinner("Formatting document chunks..."):
@@ -303,8 +303,7 @@ def get_response(prompt, user_id):
         response = data.get("response", "No response received from server")
     
     turnaround_time = time.time() - start_time
-    st.sidebar.info(f"Turnaround Time: {turnaround_time:.2f} seconds")
-    return response
+    return response, turnaround_time
 
 def chat_page():
     """
@@ -341,11 +340,12 @@ def chat_page():
                 st.write(user_query)
             
             # Get and display assistant response
-            response = get_response(user_query, user_id)
+            response, turnaround_time = get_response(user_query, user_id)
             st.session_state.messages.append({"role": "assistant", "content": response})
             
             with st.chat_message("assistant"):
                 st.write(response)
+                st.caption(f"Response time: {turnaround_time:.2f} seconds")
     else:
         # Show access denied message if user_id is not in query parameters
         st.error("Access Denied: You need a valid user ID to access this chatbot.")
