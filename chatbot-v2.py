@@ -330,14 +330,6 @@ def chat_page():
             with st.chat_message(message["role"]):
                 st.write(message["content"])
         
-        # Add info message about query parameter usage
-        if st.sidebar.button("How to share this chatbot"):
-            st.sidebar.info(
-                "You can share this chatbot with a specific user ID by using the following URL format:\n\n"
-                f"`https://[app-url]?user_id=YOUR_USER_ID_HERE`\n\n"
-                f"Replace [app-url] with the actual URL of this application."
-            )
-        
         # Chat input that processes on Enter key
         user_query = st.chat_input("Type your message here...")
         if user_query:
