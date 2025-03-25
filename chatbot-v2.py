@@ -310,65 +310,58 @@ def chat_page():
     """
     Render the chat interface page in the Streamlit app.
     
-    Gets user_id from query parameters if available and uses it to fill
-    the user ID input field in the sidebar.
+    Gets user_id from query parameters if available and uses it for document access.
+    If user_id is not in query parameters, shows access denied message.
     """
     st.title("RevolBase Chatbot")
-    st.markdown("### Ask anything about your document!")
     
     # Get user_id from query parameters if available
     query_params = st.query_params
-    print(query_params)
-    default_user_id = ""
+    user_id = ""
     
     if "user_id" in query_params and query_params["user_id"]:
-        default_user_id = query_params["user_id"]
-        logger.info(f"User ID found in query parameters: {default_user_id}")
-    
-    # Ensure unique key for the user ID input box, pre-filled from query params if available
-    user_id = st.sidebar.text_input("Put your user ID here", value=default_user_id, key="user_id")
-    
-    # If we got user_id from query parameters but sidebar is empty, update it
-    if default_user_id and not user_id:
-        user_id = default_user_id
-    
-    # Display chat messages
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-    
-    # Add info message about query parameter usage
-    if st.sidebar.button("How to share this chatbot"):
-        st.sidebar.info(
-            "You can share this chatbot with a specific user ID by using the following URL format:\n\n"
-            f"`https://[app-url]?user_id=YOUR_USER_ID_HERE`\n\n"
-            f"Replace [app-url] with the actual URL of this application."
-        )
-    
-    # Chat input that processes on Enter key
-    user_query = st.chat_input("Type your message here...")
-    if user_query:
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": user_query})
+        user_id = query_params["user_id"]
+        logger.info(f"User ID found in query parameters: {user_id}")
         
-        # Display user message
-        with st.chat_message("user"):
-            st.write(user_query)
+        st.markdown("### Ask anything about your document!")
         
-        # Check if user ID is provided
-        if not user_id:
-            error_message = "Please enter your user ID in the sidebar to continue."
-            st.session_state.messages.append({"role": "assistant", "content": error_message})
+        # Display chat messages
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+        
+        # Add info message about query parameter usage
+        if st.sidebar.button("How to share this chatbot"):
+            st.sidebar.info(
+                "You can share this chatbot with a specific user ID by using the following URL format:\n\n"
+                f"`https://[app-url]?user_id=YOUR_USER_ID_HERE`\n\n"
+                f"Replace [app-url] with the actual URL of this application."
+            )
+        
+        # Chat input that processes on Enter key
+        user_query = st.chat_input("Type your message here...")
+        if user_query:
+            # Add user message to chat history
+            st.session_state.messages.append({"role": "user", "content": user_query})
+            
+            # Display user message
+            with st.chat_message("user"):
+                st.write(user_query)
+            
+            # Get and display assistant response
+            response = get_response(user_query, user_id)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            
             with st.chat_message("assistant"):
-                st.write(error_message)
-            return
+                st.write(response)
+    else:
+        # Show access denied message if user_id is not in query parameters
+        st.error("Access Denied: You need a valid user ID to access this chatbot.")
+        st.info("Please use a URL with a valid user ID parameter: `https://[app-url]?user_id=YOUR_USER_ID`")
         
-        # Get and display assistant response
-        response = get_response(user_query, user_id)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        with st.chat_message("assistant"):
-            st.write(response)
+        # Optionally, add a placeholder for the URL to redirect users
+        st.markdown("### Contact your administrator for access")
+        st.write("If you believe you should have access to this chatbot, please contact your administrator.")
 
 def main():
     """
