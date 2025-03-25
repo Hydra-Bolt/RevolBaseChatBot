@@ -341,7 +341,8 @@ def chat_page():
     if st.sidebar.button("How to share this chatbot"):
         st.sidebar.info(
             "You can share this chatbot with a specific user ID by using the following URL format:\n\n"
-            f"`{st.query_params.url}?user_id=YOUR_USER_ID_HERE`"
+            f"`https://[app-url]?user_id=YOUR_USER_ID_HERE`\n\n"
+            f"Replace [app-url] with the actual URL of this application."
         )
     
     # Chat input that processes on Enter key
